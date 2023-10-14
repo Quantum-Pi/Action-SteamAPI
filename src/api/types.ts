@@ -82,25 +82,28 @@ export type GetGlobalAchievementPercentagesForApp = {
 	percent: number;
 }[];
 
+export interface SteamBadge {
+	badgeid: number;
+	level: number;
+	completion_time: number;
+	xp: number;
+	scarcity: number;
+}
+
+export interface CommunityBadge extends SteamBadge {
+	appid: number;
+	communityid: string;
+	border_color: number;
+}
+
+export const isCommunityBadge = (v: any): v is CommunityBadge => {
+	const temp = v as CommunityBadge;
+	if (temp.communityid) return true;
+	return false;
+};
+
 export interface GetBadges {
-	badges:
-		| {
-				badgeid: number;
-				level: number;
-				completion_time: number;
-				xp: number;
-				scarcity: number;
-		  }
-		| {
-				badgeid: number;
-				appid: number;
-				level: number;
-				completion_time: number;
-				xp: number;
-				communityid: string;
-				border_color: number;
-				scarcity: number;
-		  }[];
+	badges: Array<SteamBadge | CommunityBadge>;
 	player_xp: number;
 	player_level: number;
 	player_xp_needed_to_level_up: number;
