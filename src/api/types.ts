@@ -103,7 +103,7 @@ export const isCommunityBadge = (v: any): v is CommunityBadge => {
 };
 
 export interface GetBadges {
-	badges: Array<SteamBadge | CommunityBadge>;
+	badges: (SteamBadge | CommunityBadge)[];
 	player_xp: number;
 	player_level: number;
 	player_xp_needed_to_level_up: number;
