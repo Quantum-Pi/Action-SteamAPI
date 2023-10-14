@@ -1,60 +1,65 @@
 name: Continuous Integration
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - 'releases/*'
+    pull_request:
+    push:
+        branches:
+            - main
+            - 'releases/*'
 
 jobs:
-  test-typescript:
-    name: TypeScript Tests
-    runs-on: ubuntu-latest
+    test-typescript:
+        name: TypeScript Tests
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        id: setup-node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: npm
+            - name: Setup Node.js
+              id: setup-node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+                  cache: npm
 
-      - name: Install Dependencies
-        id: npm-ci
-        run: npm ci
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
 
-      - name: Check Format
-        id: npm-format-check
-        run: npm run format:check
+            - name: Install Dependencies
+              id: npm-ci
+              run: pnpm i
 
-      - name: Lint
-        id: npm-lint
-        run: npm run lint
+            - name: Check Format
+              id: npm-format-check
+              run: pnpm run format:check
 
-      - name: Test
-        id: npm-ci-test
-        run: npm run ci-test
+            - name: Lint
+              id: npm-lint
+              run: pnpm run lint
 
-  test-action:
-    name: GitHub Actions Test
-    runs-on: ubuntu-latest
+            - name: Test
+              id: npm-ci-test
+              run: pnpm run ci-test
 
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
+    test-action:
+        name: GitHub Actions Test
+        runs-on: ubuntu-latest
 
-      - name: Test Local Action
-        id: test-action
-        uses: ./
-        with:
-          milliseconds: 1000
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+            - name: Test Local Action
+              id: test-action
+              uses: ./
+              with:
+                  milliseconds: 1000
+
+            - name: Print Output
+              id: output
+              run: echo "${{ steps.test-action.outputs.time }}"
