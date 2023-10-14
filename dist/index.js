@@ -25694,6 +25694,32 @@ exports["default"] = SteamAPI;
 
 /***/ }),
 
+/***/ 5445:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isCommunityBadge = exports.PersonaState = void 0;
+var PersonaState;
+(function (PersonaState) {
+    PersonaState[PersonaState["Offline"] = 0] = "Offline";
+    PersonaState[PersonaState["Online"] = 1] = "Online";
+    PersonaState[PersonaState["Busy"] = 2] = "Busy";
+    PersonaState[PersonaState["Away"] = 3] = "Away";
+    PersonaState[PersonaState["Snooze"] = 5] = "Snooze";
+})(PersonaState || (exports.PersonaState = PersonaState = {}));
+const isCommunityBadge = (v) => {
+    const temp = v;
+    if (temp.communityid)
+        return true;
+    return false;
+};
+exports.isCommunityBadge = isCommunityBadge;
+
+
+/***/ }),
+
 /***/ 6757:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -25729,6 +25755,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(8434));
 const steamapi_1 = __importDefault(__nccwpck_require__(8733));
+const types_1 = __nccwpck_require__(5445);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -25738,12 +25765,18 @@ async function run() {
         const apiKey = core.getInput('apikey');
         const steamid = core.getInput('steamid');
         const api = new steamapi_1.default(apiKey);
-        const user = (await api.GetPlayerSummaries([steamid])).players[0];
+        const rawUser = (await api.GetPlayerSummaries([steamid])).players[0];
         const level = await api.GetSteamLevel(steamid);
         const badges = await api.GetBadges(steamid);
-        const games = await api.GetOwnedGames(steamid);
-        const recentGames = api.GetRecentlyPlayedGames(steamid);
-        const achievements = (await Promise.all(games.games.map(async (game, i) => {
+        const rawGames = (await api.GetOwnedGames(steamid)).games.map(game => ({
+            appid: game.appid,
+            name: game.name,
+            playtime: game.playtime_forever,
+            playtime_2weeks: game.playtime_2weeks,
+            last_played: game.rtime_last_played,
+            icon_url: game.img_icon_url
+        }));
+        const achievements = (await Promise.all(rawGames.map(async (game, i) => {
             await new Promise(res => setTimeout(res, i * 100));
             const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
             if (!playerAchievements || !playerAchievements.achievements)
@@ -25764,18 +25797,35 @@ async function run() {
                 [curr.appid]: curr.achievements
             };
         }, {});
+        const games = rawGames.map(game => ({ ...game, achievements: achievements[game.appid] ?? null }));
         const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
-        const friends = await api.GetPlayerSummaries(friendIds);
-        const json = {
-            user,
+        const friends = (await api.GetPlayerSummaries(friendIds)).players.map(friend => ({
+            steamid: friend.steamid,
+            avatar: friend.avatarfull,
+            lastlogoff: friend.lastlogoff,
+            username: friend.personaname
+        }));
+        const user = {
+            steamid: rawUser.steamid,
+            avatar: rawUser.avatarfull,
+            lastlogoff: rawUser.lastlogoff,
+            username: rawUser.personaname,
             level,
-            badges,
-            friends,
-            achievements,
+            badges: badges.badges.map(rawBadge => {
+                const isCommunity = (0, types_1.isCommunityBadge)(rawBadge);
+                return {
+                    badgeid: rawBadge.badgeid,
+                    completion_time: rawBadge.completion_time,
+                    level: rawBadge.level,
+                    scarcity: rawBadge.scarcity,
+                    communityid: isCommunity ? rawBadge.communityid : null,
+                    appid: isCommunity ? rawBadge.appid : null
+                };
+            }),
             games,
-            recentGames
+            friends
         };
-        core.setOutput('json', json);
+        core.setOutput('json', user);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
