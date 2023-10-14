@@ -73,7 +73,3 @@ jobs:
               with:
                   steamid: '76561198069744679'
                   apikey: ${{ secrets.STEAM_API }}
-
-            - name: Print Output
-              id: output
-              run: echo "${{ steps.test-action.outputs.json }}"

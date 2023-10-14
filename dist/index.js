@@ -25804,12 +25804,13 @@ async function run() {
             };
         }, {});
         const games = rawGames.map(game => ({ ...game, ...achievements[game.appid] }));
-        const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
-        const friends = (await api.GetPlayerSummaries(friendIds)).players.map(friend => ({
+        const friendIds = (await api.GetFriendList(steamid)).reduce((prev, { steamid, friend_since }) => ({ ...prev, [steamid]: friend_since }), {});
+        const friends = (await api.GetPlayerSummaries(Object.keys(friendIds))).players.map(friend => ({
             steamid: friend.steamid,
             avatar: friend.avatarfull,
             lastlogoff: friend.lastlogoff,
-            username: friend.personaname
+            username: friend.personaname,
+            friend_since: friendIds[friend.steamid]
         }));
         const user = {
             steamid: rawUser.steamid,
