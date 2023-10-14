@@ -105,7 +105,7 @@ export async function run(): Promise<void> {
 		core.setOutput(
 			'json',
 			JSON.stringify(user)
-				.replace(/'|\$/g, "\\'")
+				.replace(/('|\$|\(|\))/g, '\\$1')
 				// eslint-disable-next-line no-control-regex
 				.replace(/[^\x00-\x7F]/g, '')
 		);
