@@ -54,7 +54,7 @@ export default class SteamAPI {
 	 * @returns
 	 */
 	async GetPlayerAchievements(steamid: string, appid: number, lang = 'en'): Promise<GetPlayerAchievements> {
-		return (await this.apiFetch('ISteamUserStats/GetPlayerAchievements/v0001', { steamid, appid, lang })).playerstats as GetPlayerAchievements;
+		return (await this.apiFetch('ISteamUserStats/GetPlayerAchievements/v0001', { steamid, appid, l: lang })).playerstats as GetPlayerAchievements;
 	}
 
 	/**

@@ -25643,7 +25643,7 @@ class SteamAPI {
      * @returns
      */
     async GetPlayerAchievements(steamid, appid, lang = 'en') {
-        return (await this.apiFetch('ISteamUserStats/GetPlayerAchievements/v0001', { steamid, appid, lang })).playerstats;
+        return (await this.apiFetch('ISteamUserStats/GetPlayerAchievements/v0001', { steamid, appid, l: lang })).playerstats;
     }
     /**
      * GetOwnedGames returns a list of games a player owns along with some playtime information, if the profile is publicly visible. Private, friends-only, and other privacy settings are not supported unless you are asking for your own personal details (ie the WebAPI key you are using is linked to the steamid you are requesting).
@@ -25832,7 +25832,7 @@ async function run() {
             games,
             friends
         };
-        core.setOutput('json', JSON.stringify(user));
+        core.setOutput('json', JSON.stringify(user).replace(/'/g, "\\'"));
     }
     catch (error) {
         // Fail the workflow run if an error occurs

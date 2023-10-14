@@ -102,7 +102,7 @@ export async function run(): Promise<void> {
 			friends
 		};
 
-		core.setOutput('json', JSON.stringify(user));
+		core.setOutput('json', JSON.stringify(user).replace(/'/g, "\\'"));
 	} catch (error) {
 		// Fail the workflow run if an error occurs
 		if (error instanceof Error) core.setFailed(error.message);
