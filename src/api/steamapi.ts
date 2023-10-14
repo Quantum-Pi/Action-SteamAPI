@@ -83,8 +83,10 @@ export default class SteamAPI {
 	 * @returns
 	 */
 	async GetGlobalAchievementPercentagesForApp(gameid: number): Promise<GetGlobalAchievementPercentagesForApp> {
-		return (await this.apiFetch('ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002', { gameid })).achievementpercentages
-			.achievements as GetGlobalAchievementPercentagesForApp;
+		return (
+			(await this.apiFetch('ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002', { gameid })).achievementpercentages?.achievements ??
+			([] as GetGlobalAchievementPercentagesForApp)
+		);
 	}
 
 	/**
