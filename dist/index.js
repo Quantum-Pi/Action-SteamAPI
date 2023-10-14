@@ -25669,8 +25669,8 @@ class SteamAPI {
      * @returns
      */
     async GetGlobalAchievementPercentagesForApp(gameid) {
-        return (await this.apiFetch('ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002', { gameid })).achievementpercentages
-            .achievements;
+        return ((await this.apiFetch('ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002', { gameid })).achievementpercentages?.achievements ??
+            []);
     }
     /**
      * Returns the Steam Level of a user
@@ -25743,16 +25743,27 @@ async function run() {
         const badges = await api.GetBadges(steamid);
         const games = await api.GetOwnedGames(steamid);
         const recentGames = api.GetRecentlyPlayedGames(steamid);
-        const achievements = await Promise.all(games.games.map(async (game) => {
+        const achievements = (await Promise.all(games.games.map(async (game, i) => {
+            await new Promise(res => setTimeout(res, i * 100));
             const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
+            if (!playerAchievements || !playerAchievements.achievements)
+                return null;
             const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce((prev, { name, percent }) => ({ ...prev, [name]: percent }), {});
             return {
                 ...playerAchievements,
+                appid: game.appid,
                 achievements: playerAchievements.achievements.map(ach => {
                     return { ...ach, percent: percents[ach.apiname] };
                 })
             };
-        }));
+        }))).reduce((prev, curr) => {
+            if (!curr)
+                return prev;
+            return {
+                ...prev,
+                [curr.appid]: curr.achievements
+            };
+        }, {});
         const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
         const friends = await api.GetPlayerSummaries(friendIds);
         const json = {
