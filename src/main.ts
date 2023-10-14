@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import SteamAPI from './api/steamapi';
+import { GetPlayerAchievements } from './api/types';
 
 /**
  * The main function for the action.
@@ -17,21 +18,34 @@ export async function run(): Promise<void> {
 		const badges = await api.GetBadges(steamid);
 		const games = await api.GetOwnedGames(steamid);
 		const recentGames = api.GetRecentlyPlayedGames(steamid);
-
-		const achievements = await Promise.all(
-			games.games.map(async game => {
-				const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
-				const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce(
-					(prev, { name, percent }) => ({ ...prev, [name]: percent }),
-					{} as { [key: string]: number }
-				);
+		const achievements = (
+			await Promise.all(
+				games.games.map(async (game, i) => {
+					await new Promise(res => setTimeout(res, i * 100));
+					const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
+					if (!playerAchievements || !playerAchievements.achievements) return null;
+					const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce(
+						(prev, { name, percent }) => ({ ...prev, [name]: percent }),
+						{} as { [key: string]: number }
+					);
+					return {
+						...playerAchievements,
+						appid: game.appid,
+						achievements: playerAchievements.achievements.map(ach => {
+							return { ...ach, percent: percents[ach.apiname] };
+						})
+					};
+				})
+			)
+		).reduce(
+			(prev, curr) => {
+				if (!curr) return prev;
 				return {
-					...playerAchievements,
-					achievements: playerAchievements.achievements.map(ach => {
-						return { ...ach, percent: percents[ach.apiname] };
-					})
+					...prev,
+					[curr.appid]: curr.achievements
 				};
-			})
+			},
+			{} as { [key: string]: GetPlayerAchievements['achievements'] }
 		);
 
 		const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
