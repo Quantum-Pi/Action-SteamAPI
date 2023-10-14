@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import SteamAPI from './api/steamapi';
-import { GetPlayerAchievements } from './api/types';
+import { GetPlayerAchievements, isCommunityBadge } from './api/types';
 
 /**
  * The main function for the action.
@@ -13,14 +13,22 @@ export async function run(): Promise<void> {
 
 		const api = new SteamAPI(apiKey);
 
-		const user = (await api.GetPlayerSummaries([steamid])).players[0];
+		const rawUser = (await api.GetPlayerSummaries([steamid])).players[0];
 		const level = await api.GetSteamLevel(steamid);
 		const badges = await api.GetBadges(steamid);
-		const games = await api.GetOwnedGames(steamid);
-		const recentGames = api.GetRecentlyPlayedGames(steamid);
+
+		const rawGames = (await api.GetOwnedGames(steamid)).games.map(game => ({
+			appid: game.appid,
+			name: game.name,
+			playtime: game.playtime_forever,
+			playtime_2weeks: game.playtime_2weeks,
+			last_played: game.rtime_last_played,
+			icon_url: game.img_icon_url
+		}));
+
 		const achievements = (
 			await Promise.all(
-				games.games.map(async (game, i) => {
+				rawGames.map(async (game, i) => {
 					await new Promise(res => setTimeout(res, i * 100));
 					const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
 					if (!playerAchievements || !playerAchievements.achievements) return null;
@@ -48,20 +56,38 @@ export async function run(): Promise<void> {
 			{} as { [key: string]: GetPlayerAchievements['achievements'] }
 		);
 
-		const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
-		const friends = await api.GetPlayerSummaries(friendIds);
+		const games = rawGames.map(game => ({ ...game, achievements: achievements[game.appid] ?? null }));
 
-		const json = {
-			user,
+		const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
+		const friends = (await api.GetPlayerSummaries(friendIds)).players.map(friend => ({
+			steamid: friend.steamid,
+			avatar: friend.avatarfull,
+			lastlogoff: friend.lastlogoff,
+			username: friend.personaname
+		}));
+
+		const user = {
+			steamid: rawUser.steamid,
+			avatar: rawUser.avatarfull,
+			lastlogoff: rawUser.lastlogoff,
+			username: rawUser.personaname,
 			level,
-			badges,
-			friends,
-			achievements,
+			badges: badges.badges.map(rawBadge => {
+				const isCommunity = isCommunityBadge(rawBadge);
+				return {
+					badgeid: rawBadge.badgeid,
+					completion_time: rawBadge.completion_time,
+					level: rawBadge.level,
+					scarcity: rawBadge.scarcity,
+					communityid: isCommunity ? rawBadge.communityid : null,
+					appid: isCommunity ? rawBadge.appid : null
+				};
+			}),
 			games,
-			recentGames
+			friends
 		};
 
-		core.setOutput('json', json);
+		core.setOutput('json', user);
 	} catch (error) {
 		// Fail the workflow run if an error occurs
 		if (error instanceof Error) core.setFailed(error.message);
