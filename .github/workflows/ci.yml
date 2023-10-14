@@ -71,7 +71,7 @@ jobs:
               id: test-action
               uses: ./
               with:
-                  steamid: 76561198069744679
+                  steamid: '76561198069744679'
                   apikey: ${{ secrets.STEAM_API }}
 
             - name: Print Output
