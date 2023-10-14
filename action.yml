@@ -3,17 +3,17 @@ description: 'Exports the information of the specified users Steam profile'
 author: 'QuantumPie'
 
 inputs:
-  steamid:
-    description: 'SteamID of the user's profile'
-    required: true
-  apikey:
-    description: 'API key to access Steam's Web API'
-    required: true
+    steamid:
+        description: 'SteamID of the users profile'
+        required: true
+    apikey:
+        description: 'API key to access Steams Web API'
+        required: true
 
 outputs:
-  json:
-    description: 'Obtained information of the provided SteamID'
+    json:
+        description: 'Obtained information of the provided SteamID'
 
 runs:
-  using: node20
-  main: dist/index.js
+    using: node20
+    main: dist/index.js
