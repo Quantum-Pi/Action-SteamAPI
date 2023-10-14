@@ -25781,23 +25781,29 @@ async function run() {
             const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
             if (!playerAchievements || !playerAchievements.achievements)
                 return null;
-            const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce((prev, { name, percent }) => ({ ...prev, [name]: percent }), {});
+            const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce((prev, { name, percent }) => ({ ...prev, [name]: Math.round(percent * 10 ** 1) / 10 ** 1 }), {});
             return {
                 ...playerAchievements,
                 appid: game.appid,
-                achievements: playerAchievements.achievements.map(ach => {
+                num_achievements: playerAchievements.achievements.length,
+                achievements: playerAchievements.achievements
+                    .map(ach => {
                     return { ...ach, percent: percents[ach.apiname] };
                 })
+                    .filter(ach => ach.achieved)
             };
         }))).reduce((prev, curr) => {
             if (!curr)
                 return prev;
             return {
                 ...prev,
-                [curr.appid]: curr.achievements
+                [curr.appid]: {
+                    achievements: curr.achievements,
+                    num_achievements: curr.num_achievements
+                }
             };
         }, {});
-        const games = rawGames.map(game => ({ ...game, achievements: achievements[game.appid] ?? null }));
+        const games = rawGames.map(game => ({ ...game, ...achievements[game.appid] }));
         const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
         const friends = (await api.GetPlayerSummaries(friendIds)).players.map(friend => ({
             steamid: friend.steamid,
@@ -25825,7 +25831,7 @@ async function run() {
             games,
             friends
         };
-        core.setOutput('json', user);
+        core.setOutput('json', JSON.stringify(user));
     }
     catch (error) {
         // Fail the workflow run if an error occurs
