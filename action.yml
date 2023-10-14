@@ -1,18 +1,18 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Steam-Profile-Exporter'
+description: 'Exports the information of the specified user's Steam profile'
+author: 'QuantumPie'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  steamid:
+    description: 'SteamID of the user's profile'
     required: true
-    default: '1000'
+  api-key:
+    description: 'API key to access Steam's Web API'
+    required: true
 
-# Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  json:
+    description: 'Obtained information of the provided SteamID'
 
 runs:
   using: node20
