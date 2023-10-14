@@ -6,7 +6,7 @@ inputs:
   steamid:
     description: 'SteamID of the user's profile'
     required: true
-  api-key:
+  apikey:
     description: 'API key to access Steam's Web API'
     required: true
 

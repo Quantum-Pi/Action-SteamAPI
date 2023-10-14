@@ -1,4 +1,5 @@
 name: Continuous Integration
+
 on:
     pull_request:
     push:
@@ -71,7 +72,7 @@ jobs:
               uses: ./
               with:
                   steamid: 76561198069744679
-                  api-key: ${{secrets.STEAM_API}}
+                  apikey: ${{ secrets.STEAM_API }}
 
             - name: Print Output
               id: output

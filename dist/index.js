@@ -25735,7 +25735,7 @@ const steamapi_1 = __importDefault(__nccwpck_require__(8733));
  */
 async function run() {
     try {
-        const apiKey = core.getInput('api-key');
+        const apiKey = core.getInput('apikey');
         const steamid = core.getInput('steamid');
         const api = new steamapi_1.default(apiKey);
         const user = (await api.GetPlayerSummaries([steamid])).players[0];

@@ -7,7 +7,7 @@ import SteamAPI from './api/steamapi';
  */
 export async function run(): Promise<void> {
 	try {
-		const apiKey: string = core.getInput('api-key');
+		const apiKey: string = core.getInput('apikey');
 		const steamid: string = core.getInput('steamid');
 
 		const api = new SteamAPI(apiKey);
