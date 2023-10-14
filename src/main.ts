@@ -102,7 +102,13 @@ export async function run(): Promise<void> {
 			friends
 		};
 
-		core.setOutput('json', JSON.stringify(user).replace(/'/g, "\\'"));
+		core.setOutput(
+			'json',
+			JSON.stringify(user)
+				.replace(/'|\$/g, "\\'")
+				// eslint-disable-next-line no-control-regex
+				.replace(/[^\x00-\x7F]/g, '')
+		);
 	} catch (error) {
 		// Fail the workflow run if an error occurs
 		if (error instanceof Error) core.setFailed(error.message);
