@@ -1,5 +1,5 @@
 name: 'Steam-Profile-Exporter'
-description: 'Exports the information of the specified user's Steam profile'
+description: 'Exports the information of the specified users Steam profile'
 author: 'QuantumPie'
 
 inputs:
