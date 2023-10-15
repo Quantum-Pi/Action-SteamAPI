@@ -42,7 +42,7 @@ export async function run(): Promise<void> {
 						num_achievements: playerAchievements.achievements.length,
 						achievements: playerAchievements.achievements
 							.map(ach => {
-								return { ...ach, percent: percents[ach.apiname] };
+								return { ...ach, name: ach.name?.replace(/"/g, "'"), percent: percents[ach.apiname] };
 							})
 							.filter(ach => ach.achieved)
 					};
@@ -77,7 +77,7 @@ export async function run(): Promise<void> {
 			steamid: friend.steamid,
 			avatar: friend.avatarfull,
 			lastlogoff: friend.lastlogoff,
-			username: friend.personaname,
+			username: friend.personaname.replace(/"/g, "'"),
 			friend_since: friendIds[friend.steamid]
 		}));
 
@@ -102,12 +102,17 @@ export async function run(): Promise<void> {
 			friends
 		};
 
+		const json = JSON.stringify(user)
+			.replace(/\\/g, '')
+			.replace(/('|\$|\(|\)|"|!)/g, '\\$1')
+			// eslint-disable-next-line no-control-regex
+			.replace(/[^\x00-\x7F]/g, '')
+			.replaceAll('https://avatars.steamstatic.com/', '');
+
 		core.setOutput(
 			'json',
-			JSON.stringify(user)
-				.replace(/('|\$|\(|\)|"|!)/g, '\\$1')
-				// eslint-disable-next-line no-control-regex
-				.replace(/[^\x00-\x7F]/g, '')
+			`export interface Profile {};
+export const profile: Profile = ${json};`
 		);
 	} catch (error) {
 		// Fail the workflow run if an error occurs
