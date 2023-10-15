@@ -42,7 +42,12 @@ export async function run(): Promise<void> {
 						num_achievements: playerAchievements.achievements.length,
 						achievements: playerAchievements.achievements
 							.map(ach => {
-								return { ...ach, name: ach.name?.replace(/"/g, "'"), percent: percents[ach.apiname] };
+								return {
+									...ach,
+									name: ach.name?.replace(/"/g, "'"),
+									description: ach.description?.replace(/"/g, "'"),
+									percent: percents[ach.apiname]
+								};
 							})
 							.filter(ach => ach.achieved)
 					};
