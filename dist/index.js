@@ -25843,7 +25843,45 @@ async function run() {
             // eslint-disable-next-line no-control-regex
             .replace(/[^\x00-\x7F]/g, '')
             .replaceAll('https://avatars.steamstatic.com/', '');
-        core.setOutput('json', `export interface Profile {};
+        core.setOutput('json', `export interface Profile {
+	steamid: string;
+	avatar: string;
+	lastlogoff: number;
+	username: string;
+	level: number;
+	badges: {
+		badgeid: number;
+		completion_time: number;
+		level: number;
+		scarcity: number;
+		communityid: number | null;
+		appid: number | null;
+	}[];
+	games: {
+		appid: number;
+		name: string;
+		playtime: number;
+		playtime_2weeks?: number;
+		last_played: number;
+		icon_url: string;
+		achievements?: {
+			apiname: string;
+			achieved: number;
+			unlocktime: number;
+			name: string;
+			description: string;
+			percent: number;
+		}[];
+		num_achievements?: number;
+	}[];
+	friends: {
+		steamid: string;
+		avatar: string;
+		lastlogoff?: number;
+		username: string;
+		friend_since: number;
+	}[];
+};
 export const profile: Profile = ${json};`);
     }
     catch (error) {

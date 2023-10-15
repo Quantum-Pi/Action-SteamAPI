@@ -116,7 +116,45 @@ export async function run(): Promise<void> {
 
 		core.setOutput(
 			'json',
-			`export interface Profile {};
+			`export interface Profile {
+	steamid: string;
+	avatar: string;
+	lastlogoff: number;
+	username: string;
+	level: number;
+	badges: {
+		badgeid: number;
+		completion_time: number;
+		level: number;
+		scarcity: number;
+		communityid: number | null;
+		appid: number | null;
+	}[];
+	games: {
+		appid: number;
+		name: string;
+		playtime: number;
+		playtime_2weeks?: number;
+		last_played: number;
+		icon_url: string;
+		achievements?: {
+			apiname: string;
+			achieved: number;
+			unlocktime: number;
+			name: string;
+			description: string;
+			percent: number;
+		}[];
+		num_achievements?: number;
+	}[];
+	friends: {
+		steamid: string;
+		avatar: string;
+		lastlogoff?: number;
+		username: string;
+		friend_since: number;
+	}[];
+};
 export const profile: Profile = ${json};`
 		);
 	} catch (error) {
