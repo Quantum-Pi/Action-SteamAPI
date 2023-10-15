@@ -76,4 +76,4 @@ jobs:
 
             - name: Print Output
               id: output
-              run: echo '${{ steps.test-action.outputs.json }}'
+              run: echo "${{ steps.test-action.outputs.json }}"
