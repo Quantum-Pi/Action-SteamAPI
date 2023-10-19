@@ -82,6 +82,26 @@ export type GetGlobalAchievementPercentagesForApp = {
 	percent: number;
 }[];
 
+export interface GetSchemaForGame {
+	gameName: string;
+	gameVersion: string;
+	availableGameStats: {
+		achievements: {
+			name: string;
+			defaultvalue: number;
+			displayName: string;
+			hidden: number;
+			icon: string;
+			icongray: string;
+		}[];
+		stats: {
+			name: string;
+			defaultvalue: number;
+			displayName: string;
+		}[];
+	};
+}
+
 export interface SteamBadge {
 	badgeid: number;
 	level: number;

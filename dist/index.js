@@ -25673,6 +25673,14 @@ class SteamAPI {
             []);
     }
     /**
+     * Returns achievement and stat information for a game.
+     * @param appid  AppID of the game you want the schema of.
+     * @returns
+     */
+    async GetSchemaForGame(appid) {
+        return (await this.apiFetch('ISteamUserStats/GetSchemaForGame/v2', { appid })).game;
+    }
+    /**
      * Returns the Steam Level of a user
      * @param steamid The SteamID of the account.
      * @returns
@@ -25777,27 +25785,29 @@ async function run() {
             icon_url: game.img_icon_url
         }));
         const achievements = (await Promise.all(rawGames.map(async (game, i) => {
-            await new Promise(res => setTimeout(res, i * 100));
+            await new Promise(res => setTimeout(res, i * 125));
             const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
             if (!playerAchievements || !playerAchievements.achievements)
                 return null;
+            // Get the achievement global percentages and convert them to an object with schema {[apiname]: percent}
             const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce((prev, { name, percent }) => ({ ...prev, [name]: Math.round(percent * 10 ** 1) / 10 ** 1 }), {});
+            // Get the achievement icons and convert them to an object with schema {[apiname]: {icons, hidden}}
+            const achievementIcons = (await api.GetSchemaForGame(game.appid)).availableGameStats.achievements.reduce((prev, { icon, icongray, name, hidden }) => ({ ...prev, [name]: { icon, icongray, hidden } }), {});
             return {
                 ...playerAchievements,
                 appid: game.appid,
                 num_achievements: playerAchievements.achievements.length,
+                // Update the original achievements to also contain the percentages and icons
+                // Filter by only unlocked achievements
                 achievements: playerAchievements.achievements
                     .map(ach => {
-                    return {
-                        ...ach,
-                        name: ach.name?.replace(/"/g, "'"),
-                        description: ach.description?.replace(/"/g, "'"),
-                        percent: percents[ach.apiname]
-                    };
+                    return { ...ach, percent: percents[ach.apiname], ...achievementIcons[ach.apiname] };
                 })
                     .filter(ach => ach.achieved)
             };
-        }))).reduce((prev, curr) => {
+        })))
+            // Convert the data so it can be indexed by appid
+            .reduce((prev, curr) => {
             if (!curr)
                 return prev;
             return {
@@ -25842,7 +25852,8 @@ async function run() {
             .replace(/('|\$|\(|\)|"|!)/g, '\\$1')
             // eslint-disable-next-line no-control-regex
             .replace(/[^\x00-\x7F]/g, '')
-            .replaceAll('https://avatars.steamstatic.com/', '');
+            .replaceAll('https://avatars.steamstatic.com/', '')
+            .replace(/https:\/\/steamcdn-a\.akamaihd\.net\/steamcommunity\/public\/images\/apps\/[0-9]*\//g, '');
         core.setOutput('json', `export interface Profile {
 	steamid: string;
 	avatar: string;
@@ -25871,6 +25882,9 @@ async function run() {
 			name: string;
 			description: string;
 			percent: number;
+			icon: string;
+			icongray: string;
+			hidden: number;
 		}[];
 		num_achievements?: number;
 	}[];

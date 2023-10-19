@@ -5,7 +5,8 @@ import {
 	GetOwnedGames,
 	GetPlayerAchievements,
 	GetPlayerSummaries,
-	GetRecentlyPlayedGames
+	GetRecentlyPlayedGames,
+	GetSchemaForGame
 } from './types';
 
 type Params = { [key: string]: string | number };
@@ -87,6 +88,15 @@ export default class SteamAPI {
 			(await this.apiFetch('ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002', { gameid })).achievementpercentages?.achievements ??
 			([] as GetGlobalAchievementPercentagesForApp)
 		);
+	}
+
+	/**
+	 * Returns achievement and stat information for a game.
+	 * @param appid  AppID of the game you want the schema of.
+	 * @returns
+	 */
+	async GetSchemaForGame(appid: number): Promise<GetSchemaForGame> {
+		return (await this.apiFetch('ISteamUserStats/GetSchemaForGame/v2', { appid })).game as GetSchemaForGame;
 	}
 
 	/**
