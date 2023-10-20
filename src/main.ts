@@ -51,7 +51,13 @@ export async function run(): Promise<void> {
 						// Filter by only unlocked achievements
 						achievements: playerAchievements.achievements
 							.map(ach => {
-								return { ...ach, percent: percents[ach.apiname], ...achievementIcons[ach.apiname] };
+								return {
+									...ach,
+									name: ach.name?.replace(/"/g, "'"),
+									description: ach.description?.replace(/"/g, "'"),
+									percent: percents[ach.apiname],
+									...achievementIcons[ach.apiname]
+								};
 							})
 							.filter(ach => ach.achieved)
 					};
