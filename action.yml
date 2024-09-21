@@ -1,18 +1,18 @@
-name: 'Steam-Profile-Exporter'
-description: 'Exports the information of the specified user's Steam profile'
+name: 'Genshin-Profile-Exporter'
+description: 'Exports the information of the specified users Genshin data, provided through EnkaNetwork & Akasha Systems'
 author: 'QuantumPie'
 
 inputs:
-  steamid:
-    description: 'SteamID of the user's profile'
+  uuid:
+    description: 'UUID of the Genshin account'
     required: true
-  api-key:
-    description: 'API key to access Steam's Web API'
+  usage:
+    description: 'Intended end-user use-case of this Action'
     required: true
 
 outputs:
   json:
-    description: 'Obtained information of the provided SteamID'
+    description: 'Obtained information of the provided UUID'
 
 runs:
   using: node20

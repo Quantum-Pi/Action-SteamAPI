@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
-import SteamAPI from './api/steamapi';
+import { EnkaClient } from 'enka-network-api';
+import Akasha from 'akasha-system.js';
 
 /**
  * The main function for the action.
@@ -7,44 +8,24 @@ import SteamAPI from './api/steamapi';
  */
 export async function run(): Promise<void> {
 	try {
-		const apiKey: string = core.getInput('api-key');
-		const steamid: string = core.getInput('steamid');
+		const uuid: string = core.getInput('uuid');
+		const usage: string = core.getInput('usage');
 
-		const api = new SteamAPI(apiKey);
+		const akasha = new Akasha(usage);
+		const enka = new EnkaClient();
+		// enka.cachedAssetsManager.cacheDirectorySetup();
+		// await enka.cachedAssetsManager.fetchAllContents();
 
-		const user = (await api.GetPlayerSummaries([steamid])).players[0];
-		const level = await api.GetSteamLevel(steamid);
-		const badges = await api.GetBadges(steamid);
-		const games = await api.GetOwnedGames(steamid);
-		const recentGames = api.GetRecentlyPlayedGames(steamid);
+		const enkaUser = await enka.fetchUser(uuid);
+		console.log(enkaUser);
 
-		const achievements = await Promise.all(
-			games.games.map(async game => {
-				const playerAchievements = await api.GetPlayerAchievements(steamid, game.appid);
-				const percents = (await api.GetGlobalAchievementPercentagesForApp(game.appid)).reduce(
-					(prev, { name, percent }) => ({ ...prev, [name]: percent }),
-					{} as { [key: string]: number }
-				);
-				return {
-					...playerAchievements,
-					achievements: playerAchievements.achievements.map(ach => {
-						return { ...ach, percent: percents[ach.apiname] };
-					})
-				};
-			})
-		);
-
-		const friendIds = (await api.GetFriendList(steamid)).map(friend => friend.steamid);
-		const friends = await api.GetPlayerSummaries(friendIds);
+		const akashaUser = await akasha.getCalculationsForUser(uuid);
+		console.log(akashaUser);
+		// const api = new SteamAPI(apiKey);
 
 		const json = {
-			user,
-			level,
-			badges,
-			friends,
-			achievements,
-			games,
-			recentGames
+			enka: enkaUser,
+			akasha: akashaUser
 		};
 
 		core.setOutput('json', json);
